@@ -41,5 +41,55 @@ function updt_rss_feed_without_titles() {
 
 add_action('do_feed_rss2', 'updt_rss_feed_without_titles');
 
+//
+// Create a date for posts without titles
+  function filter_title_save_pre( $title ) { 
+        if ( $title == "" ) {
+                return date( 'd/m/Y, H:i' ); 
+                    } else {
+                            return $title;
+                                }
+  } 
+          
+  add_filter( 'title_save_pre', 'filter_title_save_pre', 10, 1 ); 
+
+//
+// Remove titles from RSS feed  
+  function remove_status_title_rss ( $title) {
+    $post_format=get_post_format();
+    if ( $post_format =="status") {
+  $title="";
+
+  }
+  return $title;
+  }
+  add_filter( 'title_title_rss', 'remove_status_title_rss');
+
+//
+// Allow gifs to be uploaded without processing
+  function disable_upload_sizes( $sizes, $metadata ) {
+
+      // Get filetype data.
+      $filetype = wp_check_filetype($metadata['file']);
+
+      // Check if is gif. 
+      if($filetype['type'] == 'image/gif') {
+          // Unset sizes if file is gif.
+          $sizes = array();
+      }
+
+      // Return sizes you want to create from image (None if image is gif.)
+      return $sizes;
+  }   
+  add_filter('intermediate_image_sizes_advanced', 'disable_upload_sizes', 10, 2); 
+
+// Unspam webmentions  
+
+  function unspam_webmentions($approved, $commentdata) {
+    return $commentdata['comment_type'] == 'webmention' ? 1 : $approved;
+  }
+
+  add_filter('pre_comment_approved', 'unspam_webmentions', '99', 2); 
+
 
 
